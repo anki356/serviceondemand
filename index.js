@@ -21,13 +21,16 @@ const router=express.Router()
   app.use(express.urlencoded({extended: true, parameterLimit: 100000}))
  app.use(cors());
  app.use('/static', express.static('./storage/uploads/'));
-
+ import AppRouter from "./routes/app/index.js"
+app.use("/api/",AppRouter)
 import "express-async-errors";
+import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware.js";
+import notFound from "./middleware/notFound.js";
 
 
 
-// app.use(errorHandlerMiddleware);
-// app.use(notFound);
+app.use(errorHandlerMiddleware);
+app.use(notFound);
  const start = async () => {
 
     try {
