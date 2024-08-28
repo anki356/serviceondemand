@@ -5,7 +5,8 @@ const UserSchema = new mongoose.Schema({
  
     email: {
         type: String,
-        unique: true
+        unique: true,
+        required:true
     },
     firstname:{
         type:String,
@@ -42,8 +43,10 @@ default:null
         type:Boolean,
         default:true
       }
-     
-    
+     ,
+    resetToken:{
+type:String
+    }
       
 }, {
     versionKey: false

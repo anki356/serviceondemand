@@ -10,6 +10,8 @@ import bcrypt from 'bcrypt'
 import { sendOtp } from '../../utils/otp.js';
 import generateOTP from '../../utils/generateOtp.js';
 import Otp from '../../models/Otp.js';
+import crypto from 'crypto'
+import { sendMailAsync } from '../../utils/emailTransport.js';
 const router=express.Router()
 const signupemailVaildation=[
     body('email').notEmpty().withMessage("Email is required")
@@ -81,4 +83,85 @@ router.post("/verify-otp",otpVaildation,validationError,async(req,res)=>{
       
     
 })
+const signinvalidation=[
+  body('email').notEmpty().withMessage("Email is required"),
+  body('password').notEmpty().withMessage("Password is required")
+]
+router.post("/sign-in",signinvalidation,validationError,async(req,res)=>{
+  const { email,password } = req.body;
+
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      return res.json(responseObj(false,null,"User Does not Exists. Please Sign up."))
+    }
+const passwordResponse=await bcrypt.compare(password,existingUser.password)
+if(!passwordResponse){
+  return res.json(responseObj(false,null,"Invalid Password."))
+}
+    // Generate a random password
+   
+
+    // Hash the password
+ 
+    // Send the password to the user's email
+   
+
+  const token=existingUser.signJWT()
+      return res.json(responseObj(true,{token,existingUser},"Sign In Successful"))
+    
+  
+})
+router.post("/reset-password",signupemailVaildation,validationError,async(req,res)=>{
+  const { email } = req.body;
+
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      return res.json(responseObj(false,null,"User Does not Exists. Please Sign up."))
+    }
+
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    const mailOptions = {
+        to: req.body.email,
+        subject: 'Password Reset',
+        html: "./utils/reset-link.ejs",
+    };
+    const options = { resetToken }
+    const userResponse=await User.updateOne({email:req.body.email},{resetToken:resetToken})
+   // Create a transporter using the Ethereal account
+  sendMailAsync(mailOptions, options)
+ return res.json(responseObj(true,null,"Email Sent"))
+      // return res.json(responseObj(true,{token,existingUser},"Sign In Successful"))
+    
+  
+})
+const passwordValidation=[
+  body('password').notEmpty().withMessage("Password is required")
+]
+router.post("/Change-password/:token",passwordValidation,validationError,async(req,res)=>{
+  const { token } = req.params;
+  const { password } = req.body;
+
+  const tokenUser = await User.findOne({ resetToken: token });
+
+  if (!tokenUser) {
+      return res.render('reset-password', { token, errorMessage: 'Invalid or expired reset token.' });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  await tokenUser.updateOne({
+      password: hashedPassword,
+      token: null
+  });
+
+  // const response = responseJson(true, null, 'Password has changed successfuly', StatusCodes.OK, []);
+  return res.render('reset-password-confirmed', { message: 'Password has changed successfuly.' });
+
+  
+})
+
 export default router

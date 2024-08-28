@@ -27,7 +27,13 @@ import "express-async-errors";
 import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware.js";
 import notFound from "./middleware/notFound.js";
 
+app.set('view engine', 'ejs');
 
+app.set('views', "./utils" + '/views');
+app.get('/reset-password/:token', (req, res) => {
+  const token = req.params.token;
+  return res.render('reset-password', { token, errorMessage: null });
+});
 
 app.use(errorHandlerMiddleware);
 app.use(notFound);
