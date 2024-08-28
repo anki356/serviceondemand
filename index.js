@@ -20,7 +20,7 @@ const router=express.Router()
   );
   app.use(express.urlencoded({extended: true, parameterLimit: 100000}))
  app.use(cors());
- 
+ app.use('/static', express.static('./storage/uploads/'));
 
 import "express-async-errors";
 
