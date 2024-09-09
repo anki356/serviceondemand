@@ -1,6 +1,6 @@
 import moment from "moment";
 import mongoose from "mongoose";
-
+import mongoosePaginate from 'mongoose-paginate-v2'
 const SubServicesRatingSchema = new mongoose.Schema({
  
     rating: {
@@ -34,7 +34,7 @@ required:true
 
 
   SubServicesRatingSchema.set('toJSON', { virtuals: true });
- 
+ SubServicesRatingSchema.plugin(mongoosePaginate)
 
 
 export default mongoose.model("SubServicesRating", SubServicesRatingSchema)

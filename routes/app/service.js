@@ -64,6 +64,15 @@ router.post("/record-help",authVerify,[body('text').notEmpty().withMessage("Resp
 
 router.post("/order",authVerify,[body('sub_services_quantity').notEmpty().isArray().withMessage("Sub Service Id Array is required"),body('address_id').notEmpty().withMessage("Address is Required"),body('amount').isFloat({min:1}).notEmpty().withMessage("Amount is Required"),body('taxes').notEmpty().withMessage("Taxes is required"),body('mode_of_payment').notEmpty().isIn("Online","Offline").withMessage("Mode of Payment required"),body('loyalty_points_discount').notEmpty().withMessage("Loyalty Points Discount is Required"),body('discount').notEmpty().withMessage("Coupon Discount is Required")],async(req,res)=>{
     let paymentDetails
+    let loyalty_points=0
+    if(req.body.loyalty_points_discount){
+let loyalty_points_details=await User.findOne({
+    _id:req.user._id
+},{
+    loyalty_points:1
+})
+loyalty_points=loyalty_points_details.loyalty_points
+    }
     if(req.body.mode_of_payment==="Online"){
         paymentDetails= await Payment.findOne({
             trx_ref_no:req.body.trx_ref_no
@@ -83,7 +92,7 @@ if(req.body.coupon_id){
      coupon_id:req.body.coupon_id?req.body.coupon_id:null,
      taxes:req.body.taxes,
      amount:req.body.amount,
-     net_amount:req.body.amount+req.body.taxes-discount,
+     net_amount:req.body.amount+req.body.taxes-discount-loyalty_points,
      mode_of_payment:req.body.mode_of_payment,
      status:req.body.mode_of_payment==="Online"?"Paid":"Pending",
      trx_ref_no:req.body.mode_of_payment==="Online"?req.body.trx_ref_no:null
@@ -98,7 +107,7 @@ for(let data of req.body.sub_services_quantity ){
         sub_services_quantity:data,
         payment_id:paymentDetails._id,
         current_status:"Slot to be Selected",
-        loyalty_points_discount:req.body.loyalty_points_discount,
+        loyalty_points_discount:loyalty_points,
         discount:req.body.discount
     })
     await OrderHistory.create({
@@ -142,57 +151,83 @@ router.get("/service-details",authVerify,async(req,res)=>{
     },{
         image_icon:0
     })
-    let subservicesList=await SubService.aggregate([
+  
+    return res.json(responseObj(true,{serviceDetails},""))
+})
+router.get("/sub-service-list",authVerify,async(req,res)=>{
+    let subservicesList = SubService.aggregate([
         {
             $match: {
-                service_id: new ObjectId(req.query.id)
+                service_id: new ObjectId(req.query.id) // Match the specific service ID
             }
         },
         {
             $lookup: {
-                from: 'subservicesratings',
-                localField: "_id",
-                foreignField: "sub_services_id",
-                as: "ratings"
+                from: 'carts', // Lookup in the 'carts' collection
+                let: { subServiceId: "$_id" }, // Set subservice ID to match
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: { $eq: ["$user_id", new ObjectId(req.user._id)] } // Match the cart to the user
+                        }
+                    },
+                    {
+                        $unwind: "$sub_services_quantity" // Unwind the sub_services_quantity array
+                    },
+                    {
+                        $match: {
+                            $expr: { $eq: ["$sub_services_quantity.sub_services_id", "$$subServiceId"] } // Match subservice ID from cart
+                        }
+                    },
+                    {
+                        $project: {
+                            quantity: "$sub_services_quantity.quantity" // Project only the quantity
+                        }
+                    }
+                ],
+                as: "cartData" // Store the lookup result in 'cartData'
             }
         },
         {
             $addFields: {
                 cover_photo_url: {
                     $cond: {
-                        if: { $and: [{ $ne: ['$cover_photo', null] }, { $ne: ['$cover_photo', ''] }] },
-                        then: { $concat: [process.env.APP_URL, '/static/', '$cover_photo'] },
+                        if: { $and: [{ $ne: ['$cover_photo', null] }, { $ne: ['$cover_photo', ''] }] }, // Check if cover photo exists
+                        then: { $concat: [process.env.CLOUD_API, '/static/', '$cover_photo'] }, // Concatenate cover photo URL
                         else: null
                     }
+                },
+                quantity: {
+                    $cond: {
+                        if: { $gt: [{ $size: "$cartData" }, 0] }, // If cartData has entries
+                        then: { $first: "$cartData.quantity" }, // Use the first quantity found
+                        else: 0 // If no cart data, default to 0
+                    }
                 }
-            }
-        },
-        {
-            $group: {
-                _id: "$_id",
-                name: { $first: "$name" },
-                cover_photo_url: { $first: "$cover_photo_url" },
-                avgRating: { $avg: "$ratings.rating" },
-                reviewCount: { $sum: { $size: "$ratings" } },
-                rate: { $first: "$rate" },
-                duration: { $first: "$duration" },
-                description: { $first: "$description" }
             }
         },
         {
             $project: {
                 name: 1,
                 cover_photo_url: 1,
-                avgRating: { $ifNull: ["$avgRating", 0] },
-                reviewCount: 1,
                 rate: 1,
                 duration: 1,
                 description: 1,
+                quantity: 1, // Include the quantity in the projection
                 _id: 1
             }
         }
     ]);
-    return res.json(responseObj(true,{serviceDetails,subservicesList},""))
+    
+    
+    let options={
+        limit:req.query.limit,
+        page:req.query.page,
+       
+      }
+    SubService.aggregatePaginate(subservicesList,options,(err,results)=>{
+        return res.json(responseObj(true,results,""))
+    })
 })
 const cartValidation=
     [body('sub_services_id').notEmpty().withMessage("Sub Service is required")]
@@ -418,11 +453,12 @@ router.get("/cart-details",authVerify,async(req,res)=>{
             sub_service: subService,
             quantity: item.quantity
         });
+
     });
-    
+   
     // Convert the grouped services object back to an array if needed
     let groupedServicesArray = Object.values(groupedServices);
-    return res.json(responseObj(true,groupedServicesArray,""))
+    return res.json(responseObj(true,{groupedServicesArray,amount:cartDetails.amount},""))
 })
 router.patch("/remove-item",authVerify,cartValidation,validationError,async(req,res)=>{
     let cartDetails=await Cart.findOne({
@@ -653,17 +689,44 @@ router.get("/sub-service-details",authVerify,async(req,res)=>{
             })  
         }
                 }
-        const ratings=await SubServicesRating.find({
-            sub_services_id:req.query.id
-        }).sort({'rating':1}).limit(5).populate({
+       
+return res.json(responseObj(true,{reviews,reviewArray,subServiceDetails},""))
+})
+router.get("/ratings",authVerify,async(req,res)=>{
+   await SubServicesRating.paginate({
+        sub_services_id:req.query.id
+    },{
+        limit:req.query.limit,page:req.query.page,
+        sort:{
+            rating:-1
+        },
+        populate:{
             path:"user_id"
-        })
-return res.json(responseObj(true,{reviews,reviewArray,ratings,subServiceDetails},""))
+        }
+    },(err,result)=>{
+        return res.json(responseObj(true,result,""))
+    })
+
 })
 router.get("/loyalty-points",authVerify,async(req,res)=>{
     const loyalty_points_details=await User.findOne({
         _id:req.user._id
     },{loyalty_points:1})
     return res.json(responseObj(true,loyalty_points_details,""))
+})
+router.get("/order-details",authVerify,async(req,res)=>{
+    let booking=await Order.findOne({
+        _id:req.query.id
+    },{
+        slots_date:1,slot_time_start:1,sub_services_quantity:1,cover_photo:1
+    }).populate({
+        path:"sub_services_quantity.sub_services_id",
+        select:{
+            name:1,duration:1,rate:1
+        }
+    }).populate({
+        path:"user_address_id"
+    })
+    return res.json(responseObj(true,{booking},""))
 })
 export default router

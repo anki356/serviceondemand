@@ -20,12 +20,20 @@ import SubServicesRating from '../../models/SubServicesRating.js';
 const router=express.Router()
 
 router.get("/services",authVerify,async(req,res)=>{
-  
-  const serviceResponse=await Service.find({
-    
-  },{
-    cover_photo:0
-  }).sort({_id:-1}).limit(6)
+  let query={}
+  let options={
+    limit:req.query.limit,
+    page:req.query.page,
+    select:{
+cover_photo:0
+    },
+    sort:{
+      _id:-1
+    }
+  }
+ await Service.paginate(query,options,(err,results)=>{
+  return res.json(responseObj(true,results,""))
+ })
  
       // Generate a random password
      

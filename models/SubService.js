@@ -1,6 +1,7 @@
 import moment from "moment";
 import mongoose from "mongoose";
 import mongoosePaginate from 'mongoose-paginate-v2'
+import mongooseAggregatePaginate from 'mongoose-aggregate-paginate-v2'
 const featureSchema=new mongoose.Schema({
   name:{
     type:String,
@@ -98,5 +99,6 @@ type:[faqSchema]
   }
 })
 SubServiceSchema.plugin(mongoosePaginate)
+SubServiceSchema.plugin(mongooseAggregatePaginate)
 
 export default mongoose.model("SubService", SubServiceSchema)

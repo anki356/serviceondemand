@@ -100,8 +100,16 @@ router.patch("/user",authVerify,async(req,res)=>{
     })
     return res.json(responseObj(true,null,"User Details Edited"))
 })
-router.patch("/change-password",authVerify,[body('password').notEmpty().withMessage("Password is required")],validationError,async(req,res)=>{
+router.patch("/change-password",authVerify,[body('password').notEmpty().withMessage("Password is required"),body('old_password').notEmpty().withMessage("Old Password")],validationError,async(req,res)=>{
    let hashed= await bcrypt.hash(req.body.password,10)
+   const passwordDetails=await User.findOne({
+    _id:req.user._id
+   },{
+    password:1
+   })
+   if(!await bcrypt.compare(req.body.old_password,passwordDetails.password)){
+    return res.json(responseObj(false,null,"Invalid Password"))
+   }
     await User.updateOne({
         _id: req.user._id
     },{

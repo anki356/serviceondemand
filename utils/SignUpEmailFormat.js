@@ -16,11 +16,11 @@ For security reasons, we strongly recommend that you change your password as soo
 **To change your password, follow these steps:**
 
 1. Reset your account using the ${email} and follow the instructions
-ssistance, feel free to contact our support team.
+assistance, feel free to contact our support team.
 
 Thank you,  
-*The Service On Dem
-If you have any questions or need aand Team*
+*The Service On Demand Team
+*
 `
 return  marked.parse(content) 
 }
