@@ -19,6 +19,14 @@ default:null
     password: {
         type: String,
         
+    },loyalty_points:{
+type:Number,
+default:0
+    },
+    user_type:{
+type:String,
+enum:["General","Professional"],
+default:"General"
     },
     dob:{
 type:String,
@@ -31,7 +39,7 @@ default:null
     },
   isAdmin:{
     type:Boolean,
-    default:null
+    default:false
   },
     createdAt: {
         type: String,

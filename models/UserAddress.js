@@ -6,11 +6,15 @@ const UserAddressSchema = new mongoose.Schema({
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref:'User',
-        unique: true
+        required:true
     },
     flat_no:{
         type:Number,
        required:true
+    },
+    default:{
+        type:Boolean,
+        default:true
     },
     area:{
 type:String,
@@ -22,7 +26,7 @@ required:true
         
     },
     state: {
-        type: Number,
+        type: String,
         required:true
        
     },

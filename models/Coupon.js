@@ -18,9 +18,15 @@ const CouponSchema = new mongoose.Schema({
 discount:{
     type:Number,
 required:true
+},max_value:{
+type:Number,
+required:true
 }
-
-     
+,
+ status:{
+type:Boolean,
+default:true
+ }    
     
       
 }, {

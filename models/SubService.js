@@ -1,5 +1,26 @@
 import moment from "moment";
 import mongoose from "mongoose";
+import mongoosePaginate from 'mongoose-paginate-v2'
+const featureSchema=new mongoose.Schema({
+  name:{
+    type:String,
+    required:true
+  },
+  status:{
+    type:Boolean,
+    required:true
+  }
+})
+const faqSchema=new mongoose.Schema({
+  question:{
+    type:String,
+    required:true
+  },
+  answer:{
+    type:String,
+    required:true
+  }
+})
 
 const SubServiceSchema = new mongoose.Schema({
  
@@ -21,9 +42,12 @@ required:true
         type: String,
         default:()=> moment().format("YYYY-MM-DDTHH:mm"),
         required: false
-    }
- 
-     ,status:{
+    },
+    cover_photo:{
+      type: String,
+      required:true
+  },
+     status:{
         type:Boolean,
         default:true
       },
@@ -31,10 +55,20 @@ required:true
 type:Number,
 required:true
       },
+      features:{
+type:[featureSchema]
+      },
+      faq:{
+type:[faqSchema]
+      },
       duration:{
         type:Number,
         required:true
 
+      },
+      description:{
+        type:String,
+        required:true
       }
      
     
@@ -54,6 +88,15 @@ required:true
       return null
     }
  })
+ SubServiceSchema.virtual('cover_photo_url').get(function () {
+  if(this.cover_photo!==undefined&& this.cover_photo!==null) {
 
+      return process.env.CLOUD_API+"/static/"+this.cover_photo
+  }
+  else if (this.cover_photo===null){
+    return null
+  }
+})
+SubServiceSchema.plugin(mongoosePaginate)
 
 export default mongoose.model("SubService", SubServiceSchema)

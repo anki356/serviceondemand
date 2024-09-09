@@ -14,7 +14,7 @@ const SubServiceQuantitySchema=new mongoose.Schema({
 const CartSchema = new mongoose.Schema({
  
     sub_services_quantity: {
-        type: SubServiceQuantitySchema,
+        type:[SubServiceQuantitySchema],
         
        required:true
     },

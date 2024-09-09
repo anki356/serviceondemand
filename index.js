@@ -10,6 +10,8 @@ import nodeCron from 'node-cron'
 import fileUpload from 'express-fileupload'
 import path from "path";
 import fs from 'fs'
+
+// import fileUpload from 'express-fileupload'
 dotenv.config({ path: `.env.${process.env.NODE_ENV?.trim() || 'production'}` });
 
 
@@ -18,11 +20,19 @@ const router=express.Router()
  app.use(
     express.json({  limit: "500mb" })
   );
+  app.use(fileUpload({
+    limits: { fileSize: 50 * 1024 * 1024 },
+    useTempFiles: true,
+    tempFileDir:path.resolve()+ '/storage/temp',
+    parseNested: true
+  }))
   app.use(express.urlencoded({extended: true, parameterLimit: 100000}))
  app.use(cors());
  app.use('/static', express.static('./storage/uploads/'));
  import AppRouter from "./routes/app/index.js"
+ import AdminPanelRouter from "./routes/adminPanel/index.js"
 app.use("/api/",AppRouter)
+app.use("/api/",AdminPanelRouter)
 import "express-async-errors";
 import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware.js";
 import notFound from "./middleware/notFound.js";

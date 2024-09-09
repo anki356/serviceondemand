@@ -1,28 +1,32 @@
 import moment from "moment";
 import mongoose from "mongoose";
-
+import mongoosePaginate from "mongoose-paginate-v2"
+const SubServiceQuantitySchema=new mongoose.Schema({
+  sub_services_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref:"SubService",
+     required:true
+  },
+  quantity:{
+      type:Number,
+      required:true
+  }
+})
 const OrderSchema = new mongoose.Schema({
  
-    coupon_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref:"Coupon"
-       
-    },
-    taxes:{
-        type:Number,
-        required:true
-    },slot_date:{
+   slot_date:{
 type:String,
-required:true
+
     },
     slot_time_start:{
         type:String,
-        required:true
+        
     },
   slot_time_end:{
     type:String,
-        required:true
+       
   },
+
 
     createdAt: {
         type: String,
@@ -34,26 +38,35 @@ user_address_id:{
     ref:"UserAddress",
    required:true
 },
-amount:{
-    type:Number,
-required:true
+discount:{
+type:Number,
+default:0
 },
-net_amount:{
-    type:Number,
+   professional_id:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'User',
+    default:null
+   },
+   sub_services_quantity:{
+type:[SubServiceQuantitySchema],
+
 required:true
-},
-status:{
-type:String,
-enum:["Paid","Pending"],
-required:true
-},
-   mode_of_payment :{
+   }
+   ,
+   loyalty_points_discount:{
+type:Number,
+default:0
+   },
+   current_status:{
     type:String,
-    enum:["Online","Offline"],
+    enum:["Slot to be Selected","Finding Professional","Assigned Professional","Booking Cancelled","Job Complete"],
 required:true
-   } 
-    
-      
+},
+   payment_id:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'Payment',
+    required:true
+   }  
 }, {
     versionKey: false
 })
@@ -62,5 +75,5 @@ required:true
   OrderSchema.set('toJSON', { virtuals: true });
  
 
-
+OrderSchema.plugin(mongoosePaginate)
 export default mongoose.model("Order", OrderSchema)
