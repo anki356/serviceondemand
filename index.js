@@ -54,7 +54,7 @@ app.use(notFound);
         useUnifiedTopology: true,
         useNewUrlParser: true,
       }, { timestamps: true });
-      const port = process.env.PORT || 5000;
+      const port = process.env.PORT || 9000;
       const urlHost = process.env.APP_URL;
   
       server.listen(port, () => console.log(`server is listening at ${urlHost}`));
