@@ -22,7 +22,7 @@ const sendMailAsync = (mailOptions, options = {}) => {
         mailOptions.from = "acodewebdev@gmail.com";
         
         const emailTemplate = fs.readFileSync(mailOptions.html, 'utf-8');
-        const renderedEmail = ejs.render(emailTemplate, { ...options, subject: mailOptions.subject })
+        const renderedEmail = ejs.render(emailTemplate, { ...options, subject: mailOptions.subject,link:process.env.CLOUD_API })
         mailOptions.html = renderedEmail
 
         transporter.sendMail(mailOptions, (error, info) => {
