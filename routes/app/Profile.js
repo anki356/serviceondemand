@@ -25,6 +25,12 @@ import Support from "../../models/Support.js"
 import SupportResponse from "../../models/SupportResponse.js"
 const router=express.Router()
 router.post("/address",authVerify,[body('flat_no').notEmpty().withMessage("Flat No Is Required"),body('area').notEmpty().withMessage("Area is required"),body('city').notEmpty().withMessage("City Is Required"),body('state').notEmpty().withMessage("State is Required"),body('pincode').isPostalCode('IN').withMessage("Postal Code Invalid"),body('category').isIn(["Home","Other"]).withMessage("Invalid Value")],validationError,async(req,res)=>{
+   let no_addresses=await UserAddress.countDocuments({
+    user_id:req.user._id
+   })
+   if(no_addresses===10){
+    return res.json(responseObj(false,null,"Max Limit reached of Addresses"))
+   }
     await UserAddress.create({
 user_id:req.user._id,
 ...req.body,
@@ -81,6 +87,23 @@ router.get("/my-bookings",authVerify,async(req,res)=>{
         return res.json(responseObj(true,result,""))
      })
 })
+router.patch("/address/:id",authVerify,async(req,res)=>{
+    await UserAddress.updateOne({
+        _id:req.params.id
+    },{
+        $set:{
+            ...req.body
+        }
+    })
+    return res.json(responseObj(true,null,"User Address updated"))
+})
+router.delete("/address/:id",authVerify,async(req,res)=>{
+    await UserAddress.deleteOne({
+        _id:req.params.id
+    })
+    return res.json(responseObj(true,null,"User Address deleted"))
+})
+
 router.get("/user",authVerify,async(req,res)=>{
     let userDetails=await User.findOne({
        _id: req.user._id
