@@ -44,7 +44,7 @@ cover_photo:0
      
   
      
-        return res.json(responseObj(true,serviceResponse,""))
+        
       
     
 })
