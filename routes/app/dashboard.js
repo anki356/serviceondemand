@@ -21,17 +21,45 @@ const router=express.Router()
 
 router.get("/services",authVerify,async(req,res)=>{
   let query={}
+
   let options={
     limit:req.query.limit,
     page:req.query.page,
-    select:{
-cover_photo:0
-    },
-    sort:{
-      _id:-1
-    }
+    
   }
- await Service.paginate(query,options,(err,results)=>{
+  let pipeline=Service.aggregate([
+    {
+      $lookup: {
+        from: 'subservices', // The name of the SubService collection
+        localField: '_id',
+        foreignField: 'service_id',
+        as: 'subservices'
+      }
+    },
+    {
+      $addFields: {
+        subServiceCount: { $size: '$subservices' } // Count the number of subservices
+      }
+    },
+    {
+      $project: {
+        name: 1,
+        icon_image_url: {
+          $cond: {
+            if: { $ne: ['$image_icon', null] },
+            then: { $concat: [process.env.CLOUD_API, '/static/', '$image_icon'] },
+            else: null
+          }
+        },
+        subServiceCount: 1
+      }
+    },{
+      $sort:{
+        _id:-1
+      }
+    }
+  ]);
+ await Service.aggregatePaginate(pipeline,options,(err,results)=>{
   return res.json(responseObj(true,results,""))
  })
  
