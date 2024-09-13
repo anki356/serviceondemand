@@ -112,7 +112,7 @@ router.get("/user",authVerify,async(req,res)=>{
     let userDetails=await User.findOne({
        _id: req.user._id
     },{
-        firstname:1,lastname:1,mobile_number:1,dob:1
+        firstname:1,lastname:1,mobile_number:1,dob:1,email:1
     })
     return res.json(responseObj(true,userDetails,""))
 })
