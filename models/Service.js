@@ -1,5 +1,6 @@
 import moment from "moment";
 import mongoose from "mongoose";
+import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 import mongoosePaginate from 'mongoose-paginate-v2'
 const ServiceSchema = new mongoose.Schema({
  
@@ -54,5 +55,6 @@ const ServiceSchema = new mongoose.Schema({
     }
  })
 ServiceSchema.plugin(mongoosePaginate)
+ServiceSchema.plugin(mongooseAggregatePaginate)
 
 export default mongoose.model("Service", ServiceSchema)
