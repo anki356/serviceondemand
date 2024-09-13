@@ -40,6 +40,10 @@ default:await UserAddress.findOne({
     })
     return res.json(responseObj(true,null,"Address Added"))
 })
+router.get("/address-by-id",authVerify,async(req,res)=>{
+    let address=await UserAddress.findById(req.query.id)
+    return res.json(responseObj(true,address,""))
+})
 router.get("/default-address",authVerify,async(req,res)=>{
 let defaultAddress=await UserAddress.findOne({
     user_id:req.user._id,
