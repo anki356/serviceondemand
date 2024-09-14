@@ -1,6 +1,6 @@
 import moment from "moment";
 import mongoose from "mongoose";
-import mongoosePaginate from "mongoose-paginate"
+import mongoosePaginate from "mongoose-paginate-v2"
 const CouponSchema = new mongoose.Schema({
  
    name:{

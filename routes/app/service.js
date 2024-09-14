@@ -32,15 +32,17 @@ user_address_id:{
     })
 }
     })
- let couponDetails=await Coupon.paginate({
+await Coupon.paginate({
         _id:{
             $nin:couponsUsed.map((data)=>data.id)
         }
     },{
         limit:req.query.limit,
         page:req.query.page
+    },(err,couponDetails)=>{
+        return res.json(responseObj(true,couponDetails,null))
     })
-    return res.json(responseObj(true,couponDetails,null))
+  
 })
 router.post("/record-help",authVerify,[body('text').notEmpty().withMessage("Response is required"),body('helpful').notEmpty().withMessage("Helpful is required")],validationError,async(req,res)=>{
     let helpful=await GeneralHelp.findOneAndUpdate({
