@@ -37,7 +37,7 @@ user_address_id:{
             $nin:couponsUsed.map((data)=>data.id)
         }
     })
-    return res.json(responseObj(true,null,couponDetails))
+    return res.json(responseObj(true,couponDetails,null))
 })
 router.post("/record-help",authVerify,[body('text').notEmpty().withMessage("Response is required"),body('helpful').notEmpty().withMessage("Helpful is required")],validationError,async(req,res)=>{
     let helpful=await GeneralHelp.findOneAndUpdate({
