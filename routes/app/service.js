@@ -32,10 +32,13 @@ user_address_id:{
     })
 }
     })
-    let couponDetails=await Coupon.find({
+ let couponDetails=await Coupon.paginate({
         _id:{
             $nin:couponsUsed.map((data)=>data.id)
         }
+    },{
+        limit:req.query.limit,
+        page:req.query.page
     })
     return res.json(responseObj(true,couponDetails,null))
 })

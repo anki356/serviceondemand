@@ -1,6 +1,6 @@
 import moment from "moment";
 import mongoose from "mongoose";
-
+import mongoosePaginate from "mongoose-paginate"
 const CouponSchema = new mongoose.Schema({
  
    name:{
@@ -35,7 +35,7 @@ default:true
 
 
   CouponSchema.set('toJSON', { virtuals: true });
- 
+ CouponSchema.plugin(mongoosePaginate)
 
 
 export default mongoose.model("Coupon", CouponSchema)
