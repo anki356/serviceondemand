@@ -690,7 +690,8 @@ router.get("/sub-service-details",authVerify,async(req,res)=>{
         else{
             reviewArray.push({
                 rating:i,
-                no_of_reviews:0
+                no_of_reviews:0,
+                percentage:0
             })  
         }
                 }
