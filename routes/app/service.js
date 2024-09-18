@@ -474,7 +474,7 @@ router.get("/cart-details",authVerify,async(req,res)=>{
     hasNextPage: Number(req.query.page) < Math.ceil(groupedServicesArray.length/Number(req.query.limit)),
     prevPage: Number(req.query.page) > 1 ? Number(req.query.page) - 1 : null,
     nextPage: Number(req.query.page) < Math.ceil(groupedServicesArray.length/Number(req.query.limit)) ? Number(req.query.page) + 1 : null}
-    return res.json(responseObj(true,{result:{docs:groupedServicesArray.filter((data,index)=>index>=(Number(page)-1)*Number(limit)&&index<=((Number(page)-1)*Number(limit))+Number(limit)-1)},amount:cartDetails.amount},""))
+    return res.json(responseObj(true,{result:{docs:groupedServicesArray.filter((data,index)=>index>=(Number(req.query.page)-1)*Number(req.query.limit)&&index<=((Number(req.query.page)-1)*Number(req.query.limit))+Number(req.query.limit)-1),...result},amount:cartDetails.amount},""))
 })
 router.patch("/remove-item",authVerify,cartValidation,validationError,async(req,res)=>{
     let cartDetails=await Cart.findOne({
