@@ -456,14 +456,25 @@ router.get("/cart-details",authVerify,async(req,res)=>{
         // Add sub-service and its quantity
         groupedServices[serviceId].sub_services.push({
             sub_service: subService,
-            quantity: item.quantity
+            quantity: item.quantity,
+            amount:subService.rate*item.quantity
         });
 
     });
+
    
     // Convert the grouped services object back to an array if needed
     let groupedServicesArray = Object.values(groupedServices);
-    return res.json(responseObj(true,{groupedServicesArray,amount:cartDetails.amount},""))
+   let result ={totalDocs: groupedServicesArray.length,
+    limit: Number(req.query.limit),
+    page: Number(req.query.page),
+    totalPages: Math.ceil(groupedServicesArray.length/Number(req.query.limit)),
+    pagingCounter: (Number(req.query.page) - 1) * Number(req.query.limit) + 1,
+    hasPrevPage: Number(req.query.page) > 1,
+    hasNextPage: Number(req.query.page) < Math.ceil(groupedServicesArray.length/Number(req.query.limit)),
+    prevPage: Number(req.query.page) > 1 ? Number(req.query.page) - 1 : null,
+    nextPage: Number(req.query.page) < Math.ceil(groupedServicesArray.length/Number(req.query.limit)) ? Number(req.query.page) + 1 : null}
+    return res.json(responseObj(true,{result:{docs:result.filter((data,index)=>index>=(Number(page)-1)*Number(limit)&&index<=((Number(page)-1)*Number(limit))+Number(limit)-1)},amount:cartDetails.amount},""))
 })
 router.patch("/remove-item",authVerify,cartValidation,validationError,async(req,res)=>{
     let cartDetails=await Cart.findOne({
