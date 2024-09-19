@@ -627,6 +627,12 @@ router.get("/sub-service-details",authVerify,async(req,res)=>{
     const subServiceDetails=await SubService.findOne({
         _id:req.query.id
     })
+    const cartDetails = await Cart.findOne({
+        user_id: req.user._id,
+        'sub_services_quantity.sub_services_id': req.query.id
+    }, {
+        'sub_services_quantity.$': 1 // This projects only the matched sub_services_quantity element
+    });
     let reviews = await SubServicesRating.aggregate([
         {
             $match:{sub_services_id:new ObjectId(req.query.id),
@@ -706,8 +712,8 @@ router.get("/sub-service-details",authVerify,async(req,res)=>{
             })  
         }
                 }
-       
-return res.json(responseObj(true,{reviews,reviewArray,subServiceDetails},""))
+       let quantity=cartDetails!==null?cartDetails.sub_services_quantity[0].quantity:0
+return res.json(responseObj(true,{reviews,reviewArray,subServiceDetails,quantity:quantity},""))
 })
 router.get("/ratings",authVerify,async(req,res)=>{
    await SubServicesRating.paginate({
