@@ -449,7 +449,9 @@ router.get("/cart-details",authVerify,async(req,res)=>{
         if (!groupedServices[serviceId]) {
             groupedServices[serviceId] = {
                 service: subService.service_id,
-                sub_services: []
+                // sub_services: [],
+                count:subService.length
+
             };
         }
     
@@ -465,6 +467,64 @@ router.get("/cart-details",authVerify,async(req,res)=>{
    
     // Convert the grouped services object back to an array if needed
     let groupedServicesArray = Object.values(groupedServices);
+   let result ={totalDocs: groupedServicesArray.length,
+    limit: Number(req.query.limit),
+    page: Number(req.query.page),
+    totalPages: Math.ceil(groupedServicesArray.length/Number(req.query.limit)),
+    pagingCounter: (Number(req.query.page) - 1) * Number(req.query.limit) + 1,
+    hasPrevPage: Number(req.query.page) > 1,
+    hasNextPage: Number(req.query.page) < Math.ceil(groupedServicesArray.length/Number(req.query.limit)),
+    prevPage: Number(req.query.page) > 1 ? Number(req.query.page) - 1 : null,
+    nextPage: Number(req.query.page) < Math.ceil(groupedServicesArray.length/Number(req.query.limit)) ? Number(req.query.page) + 1 : null}
+    return res.json(responseObj(true,{result:{docs:groupedServicesArray.filter((data,index)=>index>=(Number(req.query.page)-1)*Number(req.query.limit)&&index<=((Number(req.query.page)-1)*Number(req.query.limit))+Number(req.query.limit)-1),...result},amount:cartDetails.amount},""))
+})
+router.get("/cart-details-by-id",authVerify,async(req,res)=>{
+    let cartDetails=await Cart.findOne({
+        user_id:req.user._id
+    }).populate({
+        path:"sub_services_quantity.sub_services_id",
+        select:{
+            cover_photo:1,name:1,rate:1,duration:1
+        },
+
+        populate:{
+            path:"service_id", select:{
+                name:1
+            }
+        }
+    })
+    let groupedServices = {}
+    if(!cartDetails){
+        return res.json(responseObj(true,[],""))
+    }
+    cartDetails.sub_services_quantity.forEach(item => {
+        const subService = item.sub_services_id;
+        const serviceId = subService.service_id._id;
+    
+        if (!groupedServices[serviceId]) {
+            groupedServices[serviceId] = {
+                service: subService.service_id,
+                // sub_services: [],
+                count:subService.length
+
+            };
+        }
+    
+        // Add sub-service and its quantity
+        groupedServices[serviceId].sub_services.push({
+            sub_service: subService,
+            quantity: item.quantity,
+            amount:subService.rate*item.quantity
+        });
+
+    });
+
+   
+    // Convert the grouped services object back to an array if needed
+    let groupedServicesArray = Object.values(groupedServices);
+    const serviceFilteredArray = groupedServicesArray.find((data) => {
+        return data.service._id.toString() === req.query.id;
+    });
    let result ={totalDocs: groupedServicesArray.length,
     limit: Number(req.query.limit),
     page: Number(req.query.page),
