@@ -535,7 +535,7 @@ router.get("/cart-details-by-id",authVerify,async(req,res)=>{
     });
    let resultTotal =0
    serviceFilteredArray.sub_services.forEach((data)=>{
-    result+=data.amount
+    resultTotal+=data.amount
    })
    let result ={totalDocs: serviceFilteredArray.sub_services.length,
     limit: Number(req.query.limit),
