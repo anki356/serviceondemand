@@ -515,12 +515,14 @@ router.get("/cart-details",authVerify,async(req,res)=>{
    
     // Convert the grouped services object back to an array if needed
     let groupedServicesArray = Object.values(groupedServices);
-    console.log(groupedServicesArray)
+   
     let array=[]
     groupedServicesArray.forEach((data)=>{
 array.push({
     service:data.service,
-    count:data.sub_services.length
+    count:data.sub_services.reduce((acc, sub_service) => {
+        return acc + sub_service.quantity;
+    }, 0)
 })
     })
    let result ={totalDocs: groupedServicesArray.length,
