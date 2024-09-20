@@ -449,8 +449,8 @@ router.get("/cart-details",authVerify,async(req,res)=>{
         if (!groupedServices[serviceId]) {
             groupedServices[serviceId] = {
                 service: subService.service_id,
-                // sub_services: [],
-                count:subService.length
+                sub_services: [],
+                // count:subService.length
 
             };
         }
@@ -467,6 +467,14 @@ router.get("/cart-details",authVerify,async(req,res)=>{
    
     // Convert the grouped services object back to an array if needed
     let groupedServicesArray = Object.values(groupedServices);
+    console.log(groupedServicesArray)
+    let array=[]
+    groupedServicesArray.forEach((data)=>{
+array.push({
+    service:data.service,
+    count:data.sub_services.length
+})
+    })
    let result ={totalDocs: groupedServicesArray.length,
     limit: Number(req.query.limit),
     page: Number(req.query.page),
@@ -476,7 +484,7 @@ router.get("/cart-details",authVerify,async(req,res)=>{
     hasNextPage: Number(req.query.page) < Math.ceil(groupedServicesArray.length/Number(req.query.limit)),
     prevPage: Number(req.query.page) > 1 ? Number(req.query.page) - 1 : null,
     nextPage: Number(req.query.page) < Math.ceil(groupedServicesArray.length/Number(req.query.limit)) ? Number(req.query.page) + 1 : null}
-    return res.json(responseObj(true,{result:{docs:groupedServicesArray.filter((data,index)=>index>=(Number(req.query.page)-1)*Number(req.query.limit)&&index<=((Number(req.query.page)-1)*Number(req.query.limit))+Number(req.query.limit)-1),...result},amount:cartDetails.amount},""))
+    return res.json(responseObj(true,{result:{docs:array.filter((data,index)=>index>=(Number(req.query.page)-1)*Number(req.query.limit)&&index<=((Number(req.query.page)-1)*Number(req.query.limit))+Number(req.query.limit)-1),...result},amount:cartDetails.amount},""))
 })
 router.get("/cart-details-by-id",authVerify,async(req,res)=>{
     let cartDetails=await Cart.findOne({
@@ -504,8 +512,8 @@ router.get("/cart-details-by-id",authVerify,async(req,res)=>{
         if (!groupedServices[serviceId]) {
             groupedServices[serviceId] = {
                 service: subService.service_id,
-                // sub_services: [],
-                count:subService.length
+                sub_services: [],
+                
 
             };
         }
@@ -525,16 +533,11 @@ router.get("/cart-details-by-id",authVerify,async(req,res)=>{
     const serviceFilteredArray = groupedServicesArray.find((data) => {
         return data.service._id.toString() === req.query.id;
     });
-   let result ={totalDocs: groupedServicesArray.length,
-    limit: Number(req.query.limit),
-    page: Number(req.query.page),
-    totalPages: Math.ceil(groupedServicesArray.length/Number(req.query.limit)),
-    pagingCounter: (Number(req.query.page) - 1) * Number(req.query.limit) + 1,
-    hasPrevPage: Number(req.query.page) > 1,
-    hasNextPage: Number(req.query.page) < Math.ceil(groupedServicesArray.length/Number(req.query.limit)),
-    prevPage: Number(req.query.page) > 1 ? Number(req.query.page) - 1 : null,
-    nextPage: Number(req.query.page) < Math.ceil(groupedServicesArray.length/Number(req.query.limit)) ? Number(req.query.page) + 1 : null}
-    return res.json(responseObj(true,{result:{docs:groupedServicesArray.filter((data,index)=>index>=(Number(req.query.page)-1)*Number(req.query.limit)&&index<=((Number(req.query.page)-1)*Number(req.query.limit))+Number(req.query.limit)-1),...result},amount:cartDetails.amount},""))
+   let result =0
+   serviceFilteredArray.sub_services.forEach((data)=>{
+    result+=data.amount
+   })
+    return res.json(responseObj(true,{serviceFilteredArray,result},""))
 })
 router.patch("/remove-item",authVerify,cartValidation,validationError,async(req,res)=>{
     let cartDetails=await Cart.findOne({
