@@ -67,7 +67,7 @@ router.post("/record-help",authVerify,[body('text').notEmpty().withMessage("Resp
     return res.json(responseObj(true,helpful,""))
 })
 
-router.post("/order",authVerify,[body('sub_services_quantity').notEmpty().isArray().withMessage("Sub Service Id Array is required"),body('address_id').notEmpty().withMessage("Address is Required"),body('amount').isFloat({min:1}).notEmpty().withMessage("Amount is Required"),body('taxes').notEmpty().withMessage("Taxes is required"),body('mode_of_payment').notEmpty().isIn("Online","Offline").withMessage("Mode of Payment required"),body('loyalty_points_discount').notEmpty().withMessage("Loyalty Points Discount is Required"),body('discount').notEmpty().withMessage("Coupon Discount is Required")],async(req,res)=>{
+router.post("/order",authVerify,[body('service_id').notEmpty().withMessage("Service Id is required"),body('address_id').notEmpty().withMessage("Address is Required"),body('amount').isFloat({min:1}).notEmpty().withMessage("Amount is Required"),body('taxes').notEmpty().withMessage("Taxes is required"),body('mode_of_payment').notEmpty().isIn("Online","Offline").withMessage("Mode of Payment required"),body('loyalty_points_discount').notEmpty().withMessage("Loyalty Points Discount is Required")],validationError,async(req,res)=>{
     let paymentDetails
     let loyalty_points=0
     if(req.body.loyalty_points_discount){
@@ -106,14 +106,62 @@ if(req.body.coupon_id){
 
         })
         let orderArray=[]
-for(let data of req.body.sub_services_quantity ){
+        let cartDetails=await Cart.findOne({
+            user_id:req.user._id
+        }).populate({
+            path:"sub_services_quantity.sub_services_id",
+            select:{
+                cover_photo:1,name:1,rate:1,duration:1
+            },
+    
+            populate:{
+                path:"service_id", select:{
+                    name:1
+                }
+            }
+        })
+        let groupedServices = {}
+        if(!cartDetails){
+            return res.json(responseObj(true,[],""))
+        }
+        cartDetails.sub_services_quantity.forEach(item => {
+            const subService = item.sub_services_id;
+            const serviceId = subService.service_id._id;
+        
+            if (!groupedServices[serviceId]) {
+                groupedServices[serviceId] = {
+                    service: subService.service_id,
+                    sub_services: [],
+                    
+    
+                };
+            }
+        
+            // Add sub-service and its quantity
+            groupedServices[serviceId].sub_services.push({
+                sub_services_id: subService._id,
+                quantity: item.quantity,
+                
+            });
+    
+        });
+    
+       
+        // Convert the grouped services object back to an array if needed
+        let groupedServicesArray = Object.values(groupedServices);
+       console.log(groupedServicesArray)
+        const serviceFilteredArray = groupedServicesArray.find((data) => {
+            return data.service._id.toString() === req.body.service_id;
+        });
+       let resultTotal =0
+for(let data of serviceFilteredArray.sub_services ){
    let orderDetails= await Order.create({
         user_address_id:req.body.address_id,
         sub_services_quantity:data,
         payment_id:paymentDetails._id,
         current_status:"Slot to be Selected",
         loyalty_points_discount:loyalty_points,
-        discount:req.body.discount
+        discount:discount
     })
     await OrderHistory.create({
         order_id:orderDetails._id,
