@@ -103,10 +103,10 @@ let discount=0
 let discountDetails=await Coupon.findOne({
     _id:req.body?.coupon_id
   })
-  let loyalty=req.body.is_loyalty?loyalty_points_details.loyalty_points:0
-  discount=discountDetails?discountDetails.discount:0
+  let loyalty_points=req.body.is_loyalty?loyalty_points_details.loyalty_points:0
+  discount=discountDetails?discountDetails.discount*resultTotal/100<discountDetails.max_value?discountDetails.discount*resultTotal/100:discountDetails.max_value:0
   let tax=18/100*resultTotal
-  return res.json(responseObj(true,{discount,loyalty,discount,resultTotal,total:resultTotal-discount-loyalty_points+tax,tax}))
+  return res.json(responseObj(true,{discount,loyalty_points,discount,resultTotal,total:resultTotal-discount-loyalty_points+tax,tax}))
 
 })
 router.post("/record-help",authVerify,[body('text').notEmpty().withMessage("Response is required"),body('helpful').notEmpty().withMessage("Helpful is required")],validationError,async(req,res)=>{
