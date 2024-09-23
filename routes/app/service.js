@@ -132,7 +132,7 @@ router.post("/record-help",authVerify,[body('text').notEmpty().withMessage("Resp
     return res.json(responseObj(true,helpful,""))
 })
 
-router.post("/order",authVerify,[body('service_id').notEmpty().withMessage("Service Id is required"),body('address_id').notEmpty().withMessage("Address is Required"),body('mode_of_payment').notEmpty().isIn("Online","Offline").withMessage("Mode of Payment required"),body('loyalty_points_discount').notEmpty().withMessage("Loyalty Points Discount is Required")],validationError,async(req,res)=>{
+router.post("/order",authVerify,[body('service_id').notEmpty().withMessage("Service Id is required"),body('address_id').notEmpty().withMessage("Address is Required"),body('mode_of_payment').notEmpty().isIn(["Online","Offline"]).withMessage("Mode of Payment required"),body('loyalty_points_discount').notEmpty().withMessage("Loyalty Points Discount is Required")],validationError,async(req,res)=>{
     let paymentDetails
     let loyalty_points=0
     if(req.body.loyalty_points_discount){
