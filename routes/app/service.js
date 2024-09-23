@@ -132,7 +132,7 @@ router.post("/record-help",authVerify,[body('text').notEmpty().withMessage("Resp
     return res.json(responseObj(true,helpful,""))
 })
 
-router.post("/order",authVerify,[body('service_id').notEmpty().withMessage("Service Id is required"),body('address_id').notEmpty().withMessage("Address is Required"),body('amount').isFloat({min:1}).notEmpty().withMessage("Amount is Required"),body('taxes').notEmpty().withMessage("Taxes is required"),body('mode_of_payment').notEmpty().isIn("Online","Offline").withMessage("Mode of Payment required"),body('loyalty_points_discount').notEmpty().withMessage("Loyalty Points Discount is Required")],validationError,async(req,res)=>{
+router.post("/order",authVerify,[body('service_id').notEmpty().withMessage("Service Id is required"),body('address_id').notEmpty().withMessage("Address is Required"),body('mode_of_payment').notEmpty().isIn("Online","Offline").withMessage("Mode of Payment required"),body('loyalty_points_discount').notEmpty().withMessage("Loyalty Points Discount is Required")],validationError,async(req,res)=>{
     let paymentDetails
     let loyalty_points=0
     if(req.body.loyalty_points_discount){
@@ -143,6 +143,67 @@ let loyalty_points_details=await User.findOne({
 })
 loyalty_points=loyalty_points_details.loyalty_points
     }
+    let cartDetails=await Cart.findOne({
+        user_id:req.user._id
+    }).populate({
+        path:"sub_services_quantity.sub_services_id",
+        select:{
+            cover_photo:1,name:1,rate:1,duration:1
+        },
+
+        populate:{
+            path:"service_id", select:{
+                name:1
+            }
+        }
+    })
+    let groupedServices = {}
+    if(!cartDetails){
+        return res.json(responseObj(true,[],""))
+    }
+    cartDetails.sub_services_quantity.forEach(item => {
+        const subService = item.sub_services_id;
+        const serviceId = subService.service_id._id;
+    
+        if (!groupedServices[serviceId]) {
+            groupedServices[serviceId] = {
+                service: subService.service_id,
+                sub_services: [],
+                
+
+            };
+        }
+    
+        // Add sub-service and its quantity
+        groupedServices[serviceId].sub_services.push({
+            sub_service: subService,
+            quantity: item.quantity,
+            amount:subService.rate*item.quantity
+        });
+
+    });
+
+   
+    // Convert the grouped services object back to an array if needed
+    let groupedServicesArray = Object.values(groupedServices);
+    const serviceFilteredArray = groupedServicesArray.find((data) => {
+        return data.service._id.toString() === req.body.service_id;
+    });
+   let resultTotal =0
+   serviceFilteredArray.sub_services.forEach((data)=>{
+    resultTotal+=data.amount
+   })
+   const loyalty_points_details=await User.findOne({
+    _id:req.user._id
+},{loyalty_points:1})
+
+let discount=0
+let discountDetails=await Coupon.findOne({
+    _id:req.body?.coupon_id
+  })
+  
+  discount=discountDetails?discountDetails.discount*resultTotal/100<discountDetails.max_value?discountDetails.discount*resultTotal/100:discountDetails.max_value:0
+  let tax=18/100*resultTotal
     if(req.body.mode_of_payment==="Online"){
         paymentDetails= await Payment.findOne({
             trx_ref_no:req.body.trx_ref_no
@@ -151,18 +212,12 @@ loyalty_points=loyalty_points_details.loyalty_points
             return res.json(responseObj(false,null,"Duplicate trx ref no"))
         }
     }
-    let discount=0
-if(req.body.coupon_id){
-  let discountDetails=await Coupon.findOne({
-    _id:req.body.coupon_id
-  })
-  discount=discountDetails.discount
-}
+
      paymentDetails=await Payment.create({
      coupon_id:req.body.coupon_id?req.body.coupon_id:null,
-     taxes:req.body.taxes,
-     amount:req.body.amount,
-     net_amount:req.body.amount+req.body.taxes-discount-loyalty_points,
+     taxes:tax,
+     amount:resultTotal,
+     net_amount:resultTotal+tax-discount-loyalty_points,
      mode_of_payment:req.body.mode_of_payment,
      status:req.body.mode_of_payment==="Online"?"Paid":"Pending",
      trx_ref_no:req.body.mode_of_payment==="Online"?req.body.trx_ref_no:null
@@ -171,54 +226,12 @@ if(req.body.coupon_id){
 
         })
         let orderArray=[]
-        let cartDetails=await Cart.findOne({
-            user_id:req.user._id
-        }).populate({
-            path:"sub_services_quantity.sub_services_id",
-            select:{
-                cover_photo:1,name:1,rate:1,duration:1
-            },
-    
-            populate:{
-                path:"service_id", select:{
-                    name:1
-                }
-            }
-        })
-        let groupedServices = {}
+       
+       
         if(!cartDetails){
             return res.json(responseObj(true,[],""))
         }
-        cartDetails.sub_services_quantity.forEach(item => {
-            const subService = item.sub_services_id;
-            const serviceId = subService.service_id._id;
-        
-            if (!groupedServices[serviceId]) {
-                groupedServices[serviceId] = {
-                    service: subService.service_id,
-                    sub_services: [],
-                    
     
-                };
-            }
-        
-            // Add sub-service and its quantity
-            groupedServices[serviceId].sub_services.push({
-                sub_services_id: subService._id,
-                quantity: item.quantity,
-                
-            });
-    
-        });
-    
-       
-        // Convert the grouped services object back to an array if needed
-        let groupedServicesArray = Object.values(groupedServices);
-       console.log(groupedServicesArray)
-        const serviceFilteredArray = groupedServicesArray.find((data) => {
-            return data.service._id.toString() === req.body.service_id;
-        });
-       let resultTotal =0
 for(let data of serviceFilteredArray.sub_services ){
    let orderDetails= await Order.create({
         user_address_id:req.body.address_id,

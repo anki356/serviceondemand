@@ -31,11 +31,12 @@ const router=express.Router()
  app.use('/static', express.static('./storage/uploads/'));
  import AppRouter from "./routes/app/index.js"
  import AdminPanelRouter from "./routes/adminPanel/index.js"
-app.use("/api/",AppRouter)
-app.use("/api/",AdminPanelRouter)
-import "express-async-errors";
+ import "express-async-errors";
 import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware.js";
 import notFound from "./middleware/notFound.js";
+app.use("/api/",AppRouter)
+app.use("/api/",AdminPanelRouter)
+
 
 app.set('view engine', 'ejs');
 
