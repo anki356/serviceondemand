@@ -712,6 +712,7 @@ router.get('/slots-date',authVerify,async(req,res)=>{
     for(let i=0;i<4;i++){
         daysArray.push({
             date:moment().add(i,'d').date(),
+            dateFormat:moment().format("YYYY-MM-DD"),
             day:dayArray[moment().add(i,'d').day()]
         })
     }
