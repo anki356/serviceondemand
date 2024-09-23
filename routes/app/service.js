@@ -141,7 +141,7 @@ let loyalty_points_details=await User.findOne({
 },{
     loyalty_points:1
 })
-loyalty_points=loyalty_points_details?loyalty_points.loyalty_points:0
+loyalty_points=loyalty_points_details?loyalty_points.loyalty_points?loyalty_points.loyalty_points:0:0
     }
     let cartDetails=await Cart.findOne({
         user_id:req.user._id
@@ -176,7 +176,7 @@ loyalty_points=loyalty_points_details?loyalty_points.loyalty_points:0
     
         // Add sub-service and its quantity
         groupedServices[serviceId].sub_services.push({
-            sub_service: subService,
+            sub_services_id: subService,
             quantity: item.quantity,
             amount:subService.rate*item.quantity
         });
@@ -193,7 +193,13 @@ loyalty_points=loyalty_points_details?loyalty_points.loyalty_points:0
    serviceFilteredArray.sub_services.forEach((data)=>{
     resultTotal+=data.amount
    })
-  
+   let subServicesArray=[]
+   serviceFilteredArray.sub_services.forEach((data)=>{
+    subServicesArray.push({
+        sub_services_id:data.sub_services_id,
+        quantity:data.quantity
+    })
+   })
 
 let discount=0
 let discountDetails=await Coupon.findOne({
@@ -210,7 +216,7 @@ let discountDetails=await Coupon.findOne({
             return res.json(responseObj(false,null,"Duplicate trx ref no"))
         }
     }
-
+console.log(resultTotal,tax,discount,loyalty_points)
      paymentDetails=await Payment.create({
      coupon_id:req.body.coupon_id?req.body.coupon_id:null,
      taxes:tax,
@@ -230,7 +236,7 @@ let discountDetails=await Coupon.findOne({
             return res.json(responseObj(true,[],""))
         }
     
-for(let data of serviceFilteredArray.sub_services ){
+for(let data of subServicesArray ){
    let orderDetails= await Order.create({
         user_address_id:req.body.address_id,
         sub_services_quantity:data,
