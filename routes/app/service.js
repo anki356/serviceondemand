@@ -141,7 +141,7 @@ let loyalty_points_details=await User.findOne({
 },{
     loyalty_points:1
 })
-loyalty_points=loyalty_points_details.loyalty_points
+loyalty_points=loyalty_points_details?loyalty_points.loyalty_points:0
     }
     let cartDetails=await Cart.findOne({
         user_id:req.user._id
@@ -193,9 +193,7 @@ loyalty_points=loyalty_points_details.loyalty_points
    serviceFilteredArray.sub_services.forEach((data)=>{
     resultTotal+=data.amount
    })
-   const loyalty_points_details=await User.findOne({
-    _id:req.user._id
-},{loyalty_points:1})
+  
 
 let discount=0
 let discountDetails=await Coupon.findOne({
