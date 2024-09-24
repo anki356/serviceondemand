@@ -82,11 +82,13 @@ router.get("/my-bookings",authVerify,async(req,res)=>{
         select:{
            current_status:1,slot_date:1,slot_time_start:1,slot_time_end:1 ,sub_services_quantity:1
         },
-        populate:{
+        populate:[{
             path:"sub_services_quantity.sub_services_id",select:{
                 name:1
             }
-        }
+        },{
+            path:"payment_id"
+        }]
      },(err,result)=>{
         return res.json(responseObj(true,result,""))
      })

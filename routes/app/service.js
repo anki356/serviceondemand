@@ -938,7 +938,7 @@ router.get("/order-details",authVerify,async(req,res)=>{
     let booking=await Order.findOne({
         _id:req.query.id
     },{
-        slots_date:1,slot_time_start:1,sub_services_quantity:1,cover_photo:1
+        slots_date:1,slot_time_start:1,sub_services_quantity:1,cover_photo:1,current_status:1
     }).populate({
         path:"sub_services_quantity.sub_services_id",
         select:{
@@ -947,6 +947,14 @@ router.get("/order-details",authVerify,async(req,res)=>{
     }).populate({
         path:"user_address_id"
     })
-    return res.json(responseObj(true,{booking},""))
+    let status=["Slot to be Selected","Finding Professional","Assigned Professional","Booking Cancelled","Job Complete"]
+    let currentStatus=status.findIndex((data)=>{
+return data===booking.current_status
+    })
+    let nextStatus=null
+    if(currentStatus!==status.length-1){
+        nextStatus=status[currentStatus+1]
+    }
+    return res.json(responseObj(true,{booking,nextStatus},""))
 })
 export default router
