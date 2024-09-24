@@ -236,10 +236,10 @@ console.log(resultTotal,tax,discount,loyalty_points)
             return res.json(responseObj(true,[],""))
         }
     
-for(let data of subServicesArray ){
+// for(let data of subServicesArray ){
    let orderDetails= await Order.create({
         user_address_id:req.body.address_id,
-        sub_services_quantity:data,
+        sub_services_quantity:subServicesArray,
         payment_id:paymentDetails._id,
         current_status:"Slot to be Selected",
         loyalty_points_discount:loyalty_points,
@@ -249,8 +249,8 @@ for(let data of subServicesArray ){
         order_id:orderDetails._id,
         status:"Slot to be Selected"
     })
-    orderArray.push(orderDetails)
-}
+    // orderArray.push(orderDetails)
+// }
 
 await Cart.deleteOne({
     user_id:req.user._id
@@ -262,7 +262,7 @@ await User.updateOne({
         loyalty_points:100
     }
 })
-return res.json(responseObj(true,orderArray,"New Service Request Raised"))
+return res.json(responseObj(true,orderDetails,"New Service Request Raised"))
 })
 router.get("/address",authVerify,async(req,res)=>{
     let address=await UserAddress.find({
