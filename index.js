@@ -10,6 +10,7 @@ import nodeCron from 'node-cron'
 import fileUpload from 'express-fileupload'
 import path from "path";
 import fs from 'fs'
+import "express-async-errors";
 
 // import fileUpload from 'express-fileupload'
 dotenv.config({ path: `.env.${process.env.NODE_ENV?.trim() || 'production'}` });
@@ -31,7 +32,7 @@ const router=express.Router()
  app.use('/static', express.static('./storage/uploads/'));
  import AppRouter from "./routes/app/index.js"
  import AdminPanelRouter from "./routes/adminPanel/index.js"
- import "express-async-errors";
+
 import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware.js";
 import notFound from "./middleware/notFound.js";
 app.use("/api/",AppRouter)
