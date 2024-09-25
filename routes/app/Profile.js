@@ -87,7 +87,10 @@ router.get("/my-bookings",authVerify,async(req,res)=>{
                 name:1
             }
         },{
-            path:"payment_id"
+            path:"payment_id",
+            select:{
+                net_amount:1,status:1,mode_of_payment:1
+            }
         }]
      },(err,result)=>{
         return res.json(responseObj(true,result,""))
@@ -161,7 +164,7 @@ router.get("/booking-details",authVerify,async(req,res)=>{
     }).populate({
         path:"payment_id",
         select:{
-            net_amount:1
+            net_amount:1,status:1,mode_of_payment:1
         }
     })
     let status=["Slot to be Selected","Finding Professional","Assigned Professional","Booking Cancelled","Job Complete"]

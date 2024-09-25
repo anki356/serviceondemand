@@ -75,5 +75,12 @@ required:true
   OrderSchema.set('toJSON', { virtuals: true });
  
 
+  OrderSchema.virtual('date_string').get(function () {
+      if(this.slot_date&&this.slot_time_end&&this.slot_time_start){
+         return moment(this.slot_date).format("ll")+" at "+moment(this.slot_time_start).format("HH:mm A")+" - "+moment(this.slot_time_end).format("HH:mm A")
+      
+      }
+     
+  })
 OrderSchema.plugin(mongoosePaginate)
 export default mongoose.model("Order", OrderSchema)
