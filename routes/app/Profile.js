@@ -204,7 +204,7 @@ router.get("/chat-Details",authVerify,async(req,res)=>{
         is_open:true
     })
     let response=await SupportResponse.findOne({
-        support_id:chatDetails._id
+        support_id:chatDetails?._id
     })
     return res.json(responseObj(true,{chatDetails,response},""))
 })
