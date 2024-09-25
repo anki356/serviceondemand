@@ -77,7 +77,7 @@ required:true
 
   OrderSchema.virtual('date_string').get(function () {
       if(this.slot_date&&this.slot_time_end&&this.slot_time_start){
-         return moment(this.slot_date).format("ll")+" at "+moment(this.slot_time_start).format("HH:mm A")+" - "+moment(this.slot_time_end).format("HH:mm A")
+         return moment(this.slot_date).format("ll")+" at "+moment(this.slot_time_start,"HH:mm:ss").format("HH:mm A")+" - "+moment(this.slot_time_end,"HH:mm:ss").format("HH:mm A")
       
       }
      
