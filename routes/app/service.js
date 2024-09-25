@@ -938,7 +938,7 @@ router.get("/order-details",authVerify,async(req,res)=>{
     let booking=await Order.findOne({
         _id:req.query.id
     },{
-        slot_date:1,slot_time_start:1,sub_services_quantity:1,cover_photo:1,current_status:1
+        slot_date:1,slot_time_start:1,sub_services_quantity:1,cover_photo:1,current_status:1,slot_time_end:1
     }).populate({
         path:"sub_services_quantity.sub_services_id",
         select:{
