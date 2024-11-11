@@ -32,13 +32,13 @@ const router=express.Router()
  app.use('/static', express.static('./storage/uploads/'));
  import AppRouter from "./routes/app/index.js"
  import AdminPanelRouter from "./routes/adminPanel/index.js"
-
+import websiteRouter from "./routes/website/index.js"
 import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware.js";
 import notFound from "./middleware/notFound.js";
 app.use("/api/",AppRouter)
 app.use("/api/",AdminPanelRouter)
 
-
+app.use("/api/",websiteRouter)
 app.set('view engine', 'ejs');
 
 app.set('views', "./utils" + '/views');
