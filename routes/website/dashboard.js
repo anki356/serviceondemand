@@ -151,12 +151,12 @@ router.get("/search",async(req,res)=>{
   let isSearch=await Search.findOne({
     title:req.query?.keyword
   })
-  if(!isSearch&&req.query.keyword){
+  if(!isSearch&&req.query.keyword!==""){
     await Search.create({
       title:req.query.keyword
     })
   }
-  else if (req.query.keyword){
+  else if (req.query.keyword!==""){
     await Search.updateOne({
       title:req.query.keyword
     },{
