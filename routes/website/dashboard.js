@@ -172,33 +172,22 @@ router.get("/search",async(req,res)=>{
       $options:"i"
     }
   }
-  let services=await Service.find(query)
-  let secondQuery={}
-  secondQuery["$or"]=[{service_id:{
-    $in:
-      services.map((data)=>data._id)
-    
-  }},{
-...query
-  }]
-  let options={
-    limit:req.query.limit,
-    page:req.query.page,
-    populate:{
-      path:'service_id',select:{
-        name:1
-      }
-    },
-    select:{
-      name:1,cover_photo:1,rate:1
+  let services=await 
+ Service.aggregate([
+  {
+    $match:{
+      ...query
     }
-    
+  },{
+    $lookup:{
+      from:"subservices",
+      localField:"_id",
+      foreignField:"service_id",
+      as:"sub_services"
+    }
   }
- SubService.paginate(
- secondQuery,options
- ,(err,result)=>{
-  return res.json(responseObj(true,result,""))
- })
+ ])
+ return res.json(responseObj(true,services,""))
 })
 router.get("/trending-searches",authVerify,async(req,res)=>{
   let results=await Search.find({}).sort({
