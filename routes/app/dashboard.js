@@ -149,14 +149,14 @@ router.get("/home-services",authVerify,async(req,res)=>{
 })
 router.get("/search",authVerify,async(req,res)=>{
   let isSearch=await Search.findOne({
-    title:req.query.keyword
+    title:req.query?.keyword
   })
-  if(!isSearch){
+  if(!isSearch&&req.query.keyword){
     await Search.create({
       title:req.query.keyword
     })
   }
-  else{
+  else if (req.query.keyword){
     await Search.updateOne({
       title:req.query.keyword
     },{
@@ -168,7 +168,7 @@ router.get("/search",authVerify,async(req,res)=>{
 
   let query={
     name:{
-      $regex:req.query.keyword,
+      $regex:req.query?.keyword,
       $options:"i"
     }
   }
