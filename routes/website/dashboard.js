@@ -19,7 +19,7 @@ import SubService from '../../models/SubService.js';
 import SubServicesRating from '../../models/SubServicesRating.js';
 const router=express.Router()
 
-router.get("/services",authVerify,async(req,res)=>{
+router.get("/services",async(req,res)=>{
   let query={}
 
   let options={
