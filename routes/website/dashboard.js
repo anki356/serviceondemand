@@ -183,30 +183,33 @@ router.get("/search",async(req,res)=>{
       from:"subservices",
       localField:"_id",
       foreignField:"service_id",
-      as:"sub_services"
-    }
-  },   {
-    $lookup: {
-      from: 'subservicesratings', // The 'SubServicesRating' collection
-      localField: '_id', // The _id field of 'SubService'
-      foreignField: 'sub_services_id', // The sub_services_id field in 'SubServicesRating'
-      as: 'ratings',
-      pipeline: [], // Empty pipeline to preserve null or empty results
-    }
-  },
-  {
-    $addFields: {
-      averageRating: {
-          $ifNull: [{ $avg: '$ratings.rating' }, 0] // Set to 0 if averageRating is null
-        }, // Calculate the average rating
-      reviewCount: { $size: '$ratings' }, // Count the number of reviews
-      cover_photo_url: {
-        $cond: {
-          if: { $and: [{ $ne: ['$cover_photo', null] }, { $ne: ['$cover_photo', ''] }] },
-          then: { $concat: [process.env.APP_URL, '/static/', '$cover_photo'] },
-          else: null
+      pipeline:[
+        {
+          $lookup: {
+            from: 'subservicesratings', // The 'SubServicesRating' collection
+            localField: '_id', // The _id field of 'SubService'
+            foreignField: 'sub_services_id', // The sub_services_id field in 'SubServicesRating'
+            as: 'ratings',
+            pipeline: [], // Empty pipeline to preserve null or empty results
+          }
+        },
+        {
+          $addFields: {
+            averageRating: {
+                $ifNull: [{ $avg: '$ratings.rating' }, 0] // Set to 0 if averageRating is null
+              }, // Calculate the average rating
+            reviewCount: { $size: '$ratings' }, // Count the number of reviews
+            cover_photo_url: {
+              $cond: {
+                if: { $and: [{ $ne: ['$cover_photo', null] }, { $ne: ['$cover_photo', ''] }] },
+                then: { $concat: [process.env.APP_URL, '/static/', '$cover_photo'] },
+                else: null
+              }
+            }
+          }
         }
-      }
+      ],
+      as:"sub_services"
     }
   }
  ])
