@@ -208,7 +208,7 @@ router.get("/search",async(req,res)=>{
             cover_photo_url: {
               $cond: {
                 if: { $and: [{ $ne: ['$cover_photo', null] }, { $ne: ['$cover_photo', ''] }] },
-                then: { $concat: [process.env.APP_URL, '/static/', '$cover_photo'] },
+                then: { $concat: [process.env.APP_URL, 'static/', '$cover_photo'] },
                 else: null
               }
             }
