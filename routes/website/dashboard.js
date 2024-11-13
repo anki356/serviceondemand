@@ -91,6 +91,12 @@ router.get("/most-bought-services",async(req,res)=>{
       $addFields: {
         orderCount: { $size: '$orders' } // Count the number of orders for each sub-service
       }
+    },{
+      $match:{
+        orderCount:{
+          $gte:1
+        }
+      }
     },
     {
       $lookup: {
@@ -110,7 +116,7 @@ router.get("/most-bought-services",async(req,res)=>{
         cover_photo_url: {
           $cond: {
             if: { $and: [{ $ne: ['$cover_photo', null] }, { $ne: ['$cover_photo', ''] }] },
-            then: { $concat: [process.env.APP_URL, '/static/', '$cover_photo'] },
+            then: { $concat: [process.env.APP_URL, 'static/', '$cover_photo'] },
             else: null
           }
         }
