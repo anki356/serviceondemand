@@ -418,7 +418,7 @@ let subservices=await SubService.findOne({
     })
 
    }
-   return res.json(responseObj(true,cartDetails,""))
+   return res.json(responseObj(true,cartDetails,"Product Added"))
 })
 router.patch("/increase-quantity",authVerify,cartValidation,validationError,async(req,res)=>{
     let cartDetails=await Cart.findOne({
