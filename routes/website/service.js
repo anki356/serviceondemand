@@ -554,6 +554,7 @@ router.get("/percentage", authVerify, async (req, res) => {
     return res.json(responseObj(true, percentage, ""))
 })
 router.get("/cart-details", authVerify, async (req, res) => {
+    
     let cartDetails = await Cart.findOne({
         user_id: req.user._id
     }).populate({
@@ -613,7 +614,8 @@ router.get("/cart-details", authVerify, async (req, res) => {
             
         })
     })
-
+req.query.limit=groupedServicesArray.length
+req.query.page=1
     let result = {
         totalDocs: groupedServicesArray.length,
         limit: Number(req.query.limit),
