@@ -564,7 +564,7 @@ router.get("/cart-details",authVerify,async(req,res)=>{
 
         populate:{
             path:"service_id", select:{
-                name:1
+                name:1,cover_photo:1
             }
         }
     })
@@ -579,6 +579,7 @@ router.get("/cart-details",authVerify,async(req,res)=>{
         if (!groupedServices[serviceId]) {
             groupedServices[serviceId] = {
                 service: subService.service_id,
+                
                 sub_services: [],
                 // count:subService.length
 
